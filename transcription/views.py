@@ -1,6 +1,7 @@
 import base64
 import io
 import whisper
+import string
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from .models import Assignment
@@ -47,7 +48,19 @@ def save_audio(request):
     return HttpResponse("No audio data received")
 
 def compare_texts(transcribed_text, reference_text):
-    transcribed_words = set(transcribed_text.lower().split())
-    reference_words = set(reference_text.lower().split())
+    # Normalize texts by converting to lowercase and removing punctuation
+    def normalize_text(text):
+        text = text.lower()
+        text = text.translate(str.maketrans('', '', string.punctuation))
+        return text
+
+    transcribed_text = normalize_text(transcribed_text)
+    reference_text = normalize_text(reference_text)
+
+    # Split texts into sets of words
+    transcribed_words = set(transcribed_text.split())
+    reference_words = set(reference_text.split())
+    
+    # Find missing words
     missing_words = reference_words - transcribed_words
     return ", ".join(missing_words)
