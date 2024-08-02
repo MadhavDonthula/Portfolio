@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Set Reference Text</title>
+</head>
+<body>
+    <h1>Set Reference Text</h1>
+    <form method="post" action="{% url 'set_reference_text' %}">
+        {% csrf_token %}
+        <textarea name="reference_text" rows="10" cols="30"></textarea><br>
+        <button type="submit">Submit</button>
+    </form>
+</body>
+</html>
