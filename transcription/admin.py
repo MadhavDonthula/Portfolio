@@ -1,4 +1,4 @@
 from django.contrib import admin
-from .models import ReferenceText
+from .models import Assignment
 
-admin.site.register(ReferenceText)
+admin.site.register(Assignment)
