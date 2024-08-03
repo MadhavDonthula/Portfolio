@@ -1,5 +1,5 @@
-Django
-numpy
-torch
+Django==4.0.8
+torch==1.10.2
 git+https://github.com/openai/whisper.git
-PyAudio
+soundfile==0.10.3.post1
+cffi==1.15.1
