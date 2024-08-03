@@ -11,6 +11,5 @@
       "src": "/(.*)",
       "dest": "voice_transcription/wsgi.py"
     }
-  ],
-  "ignore": ["*.md", "tests/", "docs/"]
+  ]
 }
