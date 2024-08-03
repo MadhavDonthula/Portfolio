@@ -5,16 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Assignments</title>
   </head>
+  {% load static%}
+  <link rel="stylesheet" href="{% static 'transcription/index.css' %}" />
   <body>
     <h1>Assignments</h1>
-    <ul>
-      {% for assignment in assignments %}
-      <li>
-        <a href="{% url 'record_audio' assignment.id %}"
-          >{{ assignment.name }}</a
-        >
-      </li>
-      {% endfor %}
-    </ul>
+    <div class="main">
+      <ul>
+        {% for assignment in assignments %}
+        <div class="box">
+          <a href="{% url 'record_audio' assignment.id %}"
+            >{{ assignment.name }}</a
+          >
+        </div>
+        {% endfor %}
+      </ul>
+    </div>
   </body>
 </html>
