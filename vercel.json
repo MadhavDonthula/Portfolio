@@ -3,7 +3,7 @@
     {
       "src": "voice_transcription/wsgi.py",
       "use": "@vercel/python",
-      "config": { "maxLambdaSize": "30mb", "runtime": "python3.9" }
+      "config": { "maxLambdaSize": "1000mb", "runtime": "python3.9" }
     }
   ],
   "routes": [
@@ -11,5 +11,6 @@
       "src": "/(.*)",
       "dest": "voice_transcription/wsgi.py"
     }
-  ]
+  ],
+  "ignore": ["*.md", "tests/", "docs/"]
 }
