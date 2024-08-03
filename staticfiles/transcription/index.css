@@ -1,0 +1,36 @@
+li {
+  text-decoration: none;
+  color: yellow;
+}
+
+h1 {
+  display: flex;
+  justify-content: center;
+}
+.main {
+  display: flex;
+  justify-content: center;
+  flex-direction: column;
+  width: 20rem;
+  height: 20rem;
+  background-color: red;
+  margin-left: auto;
+  margin-top: auto;
+  margin-right: auto;
+  margin-bottom: auto;
+  align-items: start;
+}
+
+.box {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 1rem;
+  width: 5rem;
+  height: 3rem;
+  background-color: blue;
+}
+.box > a {
+  text-decoration: none;
+  color: white;
+}
