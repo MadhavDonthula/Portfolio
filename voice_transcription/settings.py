@@ -25,7 +25,7 @@ SECRET_KEY = "django-insecure-qcpy-cu#igsxi36z%)z%)+5_al#1+o^@194kphg!&51es0z4w3
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = [".vercel.app"]
 import sys
 sys.path.append('/path/to/whisper/installation')
 
