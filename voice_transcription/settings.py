@@ -15,10 +15,7 @@ import django_heroku
 import dj_database_url
 import os
 
-from environ import Env 
-env = Env()
-Env.read_env()
-ENVIRONMNET = env("ENVIRONMENT", default="production")
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -28,15 +25,13 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = env("SECRET_KEY")
+SECRET_KEY = "django-insecure-qcpy-cu#igsxi36z%)z%)+5_al#1+o^@194kphg!&51es0z4w3"
 
-ENCRYPT_KEY = env("ENCRYPT_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-if ENVIRONMNET == "development":
-    DEBUG = True
-else:
-    DEBUG = False
+
+DEBUG = True
+
 
 ALLOWED_HOSTS = ['*']
 import sys
