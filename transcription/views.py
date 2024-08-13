@@ -43,12 +43,12 @@ def save_audio(request):
 
                 # Retrieve the assignment and reference text
                 assignment = get_object_or_404(Assignment, id=assignment_id)
-                reference_text = " ".join([qa.answer for qa in assignment.questions.all()])
+                Answer = " ".join([qa.answer for qa in assignment.questions.all()])
 
                 # Compare the transcribed text with the reference text
-                missing_words = compare_texts(transcribed_text, reference_text)
+                missing_words = compare_texts(transcribed_text, Answer)
 
-                return HttpResponse(f"Transcribed Text: {transcribed_text}\n Reference Text: {reference_text} \n Missing Words: {missing_words}")
+                return HttpResponse(f"Transcribed Text: {transcribed_text}\n Answer: {Answer} \n Missing Words: {missing_words}")
             else:
                 return HttpResponse("Error: Invalid audio data format")
         except Exception as e:
@@ -56,17 +56,23 @@ def save_audio(request):
     return HttpResponse("No audio data received")
 
 
-def compare_texts(transcribed_text, reference_text):
+def compare_texts(transcribed_text, answer):
     def normalize_text(text):
         text = text.lower()
         text = text.translate(str.maketrans("", "", string.punctuation))
         return text
     transcribed_text = normalize_text(transcribed_text)
-    reference_text = normalize_text(reference_text)
+    answer = normalize_text(answer)
     transcribed_words = set(transcribed_text.split())
-    reference_words = set(reference_text.split())
-    missing_words = reference_words - transcribed_words
+    answer = set(answer.split())
+    missing_words = answer - transcribed_words
     return ", ".join(missing_words)
 
+
+def recording(request, assignment_id, question_id):
+    assignment = get_object_or_404(Assignment, id=assignment_id)
+    question = get_object_or_404(QuestionAnswer, id=question_id)
+    
+    return render(request, "transcription/recording.html", {"assignment": assignment, "question": question})
 
 
