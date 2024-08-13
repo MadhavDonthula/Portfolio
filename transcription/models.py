@@ -13,8 +13,8 @@ class Assignment(models.Model):
 
 class QuestionAnswer(models.Model):
     assignment = models.ForeignKey(Assignment, related_name="questions", on_delete=models.CASCADE)
-    question = models.TextField()
-    answer = models.TextField()
+    question = models.TextField(max_length=500)
+    answer = models.TextField(max_length=500)
 
     def __str__(self):
         return f"Question: {self.question[:30]}"

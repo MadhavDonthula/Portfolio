@@ -1,16 +1,20 @@
-
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Record Audio</title>
- 
+    <link rel="stylesheet" type="text/css" href="{% static 'transcription/recording.css' %}" />
   </head>
   <body>
-    <h1> Recording Audio for question number {{question.id}} </h1>
-    <button id="startButton">Start Speaking</button>
-    <button id="stopButton" disabled>Done!</button>
+    <h1>Question number {{ question.id }}</h1>
+    <h2> {{question}} </h2>
+
+    <div id="mic" class="mic">
+      <i class="mic-icon"></i>
+      <div class="mic-shadow"></div>
+    </div>
 
     <form id="audioForm" method="post" action="{% url 'save_audio' %}">
       {% csrf_token %}
@@ -21,14 +25,14 @@
     <script>
       let mediaRecorder;
       let audioChunks = [];
+      let isRecording = false;
 
-      document
-        .getElementById("startButton")
-        .addEventListener("click", async () => {
+      const micDiv = document.getElementById("mic");
+
+      micDiv.addEventListener("click", async () => {
+        if (!isRecording) {
           try {
-            const stream = await navigator.mediaDevices.getUserMedia({
-              audio: true,
-            });
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
             mediaRecorder = new MediaRecorder(stream);
             mediaRecorder.ondataavailable = (event) => {
               audioChunks.push(event.data);
@@ -49,22 +53,17 @@
               };
             };
             mediaRecorder.start();
-            document.getElementById("stopButton").disabled = false;
-            document.getElementById("startButton").disabled = true;
+            isRecording = true;
+            micDiv.classList.add("recording");
           } catch (error) {
             console.error("Error accessing audio", error);
           }
-        });
-
-      document.getElementById("stopButton").addEventListener("click", () => {
-        try {
+        } else {
           if (mediaRecorder) {
             mediaRecorder.stop();
-            document.getElementById("stopButton").disabled = true;
-            document.getElementById("startButton").disabled = false;
+            isRecording = false;
+            micDiv.classList.remove("recording");
           }
-        } catch (error) {
-          console.error("Error stopping the recording", error);
         }
       });
     </script>
