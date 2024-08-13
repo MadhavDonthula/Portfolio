@@ -1,15 +1,23 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Record Audio</title>
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="{% static 'record_audio.css' %}" />
   </head>
   <body>
     <h1>Record Audio for {{ assignment.name }}</h1>
-    <p>{{ assignment.reference_text }}</p>
-    <button id="startBtn">Start Recording</button>
-    <button id="stopBtn" disabled>Stop Recording</button>
+    {% for question in questions %}
+    <p>{{ question.question }}</p>
+    {% endfor %}
+
+    <button id="startButton">Start Speaking</button>
+    <button id="stopButton" disabled>Done!</button>
 
     <form id="audioForm" method="post" action="{% url 'save_audio' %}">
       {% csrf_token %}
@@ -22,7 +30,7 @@
       let audioChunks = [];
 
       document
-        .getElementById("startBtn")
+        .getElementById("startButton")
         .addEventListener("click", async () => {
           try {
             const stream = await navigator.mediaDevices.getUserMedia({
@@ -48,22 +56,22 @@
               };
             };
             mediaRecorder.start();
-            document.getElementById("stopBtn").disabled = false;
-            document.getElementById("startBtn").disabled = true;
+            document.getElementById("stopButton").disabled = false;
+            document.getElementById("startButton").disabled = true;
           } catch (error) {
-            console.error("Error accessing audio:", error);
+            console.error("Error accessing audio", error);
           }
         });
 
-      document.getElementById("stopBtn").addEventListener("click", () => {
+      document.getElementById("stopButton").addEventListener("click", () => {
         try {
           if (mediaRecorder) {
             mediaRecorder.stop();
-            document.getElementById("stopBtn").disabled = true;
-            document.getElementById("startBtn").disabled = false;
+            document.getElementById("stopButton").disabled = true;
+            document.getElementById("startButton").disabled = false;
           }
         } catch (error) {
-          console.error("Error stopping recording:", error);
+          console.error("Error stopping the recording", error);
         }
       });
     </script>

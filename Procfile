@@ -1,1 +1,0 @@
-web gunicorn voice_transcription.wsgi:application --log-file -
