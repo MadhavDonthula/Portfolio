@@ -9,7 +9,7 @@
   </head>
   <body>
     <h1>Question number {{ question.id }}</h1>
-    <h2> {{question}} </h2>
+    <button id="replayButton">Replay</button>
 
     <div id="mic" class="mic">
       <i class="mic-icon"></i>
@@ -20,9 +20,41 @@
       {% csrf_token %}
       <input type="hidden" name="audio_data" id="audio_data" />
       <input type="hidden" name="assignment_id" value="{{ assignment.id }}" />
+      <input type="hidden" name="question_id" value="{{ question.id }}" /> 
     </form>
 
     <script>
+      // Function to speak the question using the Web Speech API
+      function speakQuestion(questionText) {
+        if ('speechSynthesis' in window) {
+          const speech = new SpeechSynthesisUtterance(questionText);
+          speech.lang = 'fr-FR'; // Set the language to French
+          speech.rate = 0.9; // Slower speed for more natural speech
+          speech.pitch = 1.2; // Slightly higher pitch for a friendlier tone
+
+          // Select a more natural voice if available
+          const voices = window.speechSynthesis.getVoices();
+          const selectedVoice = voices.find(voice => voice.lang === 'fr-FR' && voice.name.includes("Google")) || voices[0];
+          speech.voice = selectedVoice;
+
+          window.speechSynthesis.speak(speech);
+        } else {
+          console.error("Text-to-Speech not supported by this browser.");
+        }
+      }
+
+      // Play audio automatically when the page loads
+      window.onload = function() {
+        const questionText = "{{ question }}";
+        speakQuestion(questionText);
+      };
+
+      // Play audio when the "Replay" button is clicked
+      document.getElementById("replayButton").addEventListener("click", () => {
+        const questionText = "{{ question }}";
+        speakQuestion(questionText);
+      });
+
       let mediaRecorder;
       let audioChunks = [];
       let isRecording = false;

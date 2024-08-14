@@ -21,11 +21,13 @@ def save_audio(request):
     if request.method == "POST":
         audio_data = request.POST.get("audio_data", "")
         assignment_id = request.POST.get("assignment_id", "")
+        question_id = request.POST.get("question_id", "")
 
-        if not assignment_id.isdigit():
-            return HttpResponse("Error: Invalid assignment ID format")
+        if not assignment_id.isdigit() or not question_id.isdigit():
+            return HttpResponse("Error: Invalid ID format")
         
         assignment_id = int(assignment_id)
+        question_id = int(question_id)
 
         try:
             if audio_data:
@@ -43,7 +45,12 @@ def save_audio(request):
 
                 # Retrieve the assignment and reference text
                 assignment = get_object_or_404(Assignment, id=assignment_id)
-                Answer = " ".join([qa.answer for qa in assignment.questions.all()])
+                selected_question = get_object_or_404(QuestionAnswer, id=question_id, assignment=assignment)
+                selected_answer = selected_question.answer
+
+
+                
+                Answer = selected_answer if selected_answer else ""
 
                 # Compare the transcribed text with the reference text
                 missing_words = compare_texts(transcribed_text, Answer)
