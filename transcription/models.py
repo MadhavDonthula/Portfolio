@@ -1,6 +1,5 @@
 from django.db import models
 
-
 class Transcription(models.Model):
     audio_file = models.FileField(upload_to="audio/")
     transcribed_text = models.TextField()
@@ -18,4 +17,10 @@ class QuestionAnswer(models.Model):
 
     def __str__(self):
         return f"Question: {self.question[:30]}"
-    
+
+class ClassCode(models.Model):
+    code = models.CharField(max_length=10, unique=True)
+    assignment = models.ForeignKey(Assignment, related_name="class_codes", on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.code

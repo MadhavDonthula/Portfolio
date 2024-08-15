@@ -12,11 +12,15 @@
   <body>
     <h1>Assignments</h1>
     <div class="container">
+      {% if assignments %}
         {% for assignment in assignments %}
         <div class="box" onClick="window.location.href='{% url "record_audio" assignment.id %}'"> 
         <h4>{{ assignment.name }}</h4>
         </div>
         {% endfor %}
+      {% else %}
+        <p>No assignments found for this class code.</p>
+      {% endif %}
     </div>
   </body>
 </html>

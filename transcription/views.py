@@ -5,11 +5,36 @@ import whisper
 import string
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
-from .models import Assignment, QuestionAnswer
+from .models import Assignment, QuestionAnswer, ClassCode
 
-def index(request):
-    assignments = Assignment.objects.all()
-    return render(request, "transcription/index.html", {"assignments": assignments} )
+
+def blank (request):
+    return render(request, "transcription/blank.html")
+def home(request):
+    if request.method == "POST":
+        code = request.POST.get("class_code").upper()  # Convert code to uppercase
+        try:
+            class_code = ClassCode.objects.get(code=code)
+            assignments = [class_code.assignment]  # Get the assignment associated with the class code
+
+            if assignments:
+                return render(request, 'transcription/index.html', {'assignments': assignments})
+            else:
+                return render(request, 'transcription/home.html', {'error': 'No assignments found for this class code'})
+
+        except ClassCode.DoesNotExist:
+            return render(request, 'transcription/home.html', {'error': 'Invalid class code'})
+    
+    return render(request, 'transcription/home.html')
+
+
+def index(request, assignment_id=None):
+    if assignment_id:
+        assignment = get_object_or_404(Assignment, id=assignment_id)
+        assignments = [assignment]
+    else:
+        assignments = Assignment.objects.all()
+    return render(request, 'transcription/index.html', {'assignments': assignments})
 
 def record_audio(request, assignment_id):
     assignment = get_object_or_404(Assignment, id=assignment_id)
@@ -21,11 +46,13 @@ def save_audio(request):
     if request.method == "POST":
         audio_data = request.POST.get("audio_data", "")
         assignment_id = request.POST.get("assignment_id", "")
+        question_id = request.POST.get("question_id", "")
 
-        if not assignment_id.isdigit():
-            return HttpResponse("Error: Invalid assignment ID format")
+        if not assignment_id.isdigit() or not question_id.isdigit():
+            return HttpResponse("Error: Invalid ID format")
         
         assignment_id = int(assignment_id)
+        question_id = int(question_id)
 
         try:
             if audio_data:
@@ -38,12 +65,17 @@ def save_audio(request):
                 model = whisper.load_model("medium")
 
                 # Transcribe the audio with language set to French
-                result = model.transcribe("temp_audio.wav", language="fr")
+                result = model.transcribe("temp_audio.wav", language="")
                 transcribed_text = result["text"]
 
                 # Retrieve the assignment and reference text
                 assignment = get_object_or_404(Assignment, id=assignment_id)
-                Answer = " ".join([qa.answer for qa in assignment.questions.all()])
+                selected_question = get_object_or_404(QuestionAnswer, id=question_id, assignment=assignment)
+                selected_answer = selected_question.answer
+
+
+                
+                Answer = selected_answer if selected_answer else ""
 
                 # Compare the transcribed text with the reference text
                 missing_words = compare_texts(transcribed_text, Answer)
