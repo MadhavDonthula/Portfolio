@@ -27,7 +27,8 @@ h1 {
   cursor: pointer;
 }
 
-.mic::before, .mic::after {
+.mic::before,
+.mic::after {
   content: "";
   position: absolute;
   top: 50%;
@@ -78,7 +79,8 @@ h1 {
   z-index: 3;
 }
 
-.mic-icon::before, .mic-icon::after {
+.mic-icon::before,
+.mic-icon::after {
   content: "";
   display: block;
   box-sizing: border-box;
@@ -112,7 +114,9 @@ h1 {
   left: 50%;
   border-radius: 100%;
   z-index: 1;
-  box-shadow: 10px -55px 30px 15px #823ca6, 24px -10px 47px 10px #aab3d2, -21px -25px 97px 10px #5acee3, 51px 5px 17px 10px #1b7d8f, 3px 2px 77px 10px #f30bf5;
+  box-shadow: 10px -55px 30px 15px #823ca6, 24px -10px 47px 10px #aab3d2,
+    -21px -25px 97px 10px #5acee3, 51px 5px 17px 10px #1b7d8f,
+    3px 2px 77px 10px #f30bf5;
   animation: shadow-rotate 2s linear infinite;
   transform-origin: center;
 }
