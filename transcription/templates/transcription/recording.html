@@ -1,103 +1,124 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Record Audio</title>
-    <link rel="stylesheet" type="text/css" href="{% static 'transcription/recording.css' %}" />
-  </head>
-  <body>
-    <h1>Question number {{ question.id }}</h1>
-    <button id="replayButton">Replay</button>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Record Audio</title>
+  <link rel="stylesheet" type="text/css" href="{% static 'transcription/recording.css' %}" />
+</head>
+<body>
+  <h1 id="typedText"></h1>
+  <button id="replayButton">Replay</button>
 
-    <div id="mic" class="mic">
-      <i class="mic-icon"></i>
-      <div class="mic-shadow"></div>
-    </div>
+  <div id="mic" class="mic">
+    <i class="mic-icon"></i>
+    <div class="mic-shadow"></div>
+  </div>
 
-    <form id="audioForm" method="post" action="{% url 'save_audio' %}">
-      {% csrf_token %}
-      <input type="hidden" name="audio_data" id="audio_data" />
-      <input type="hidden" name="assignment_id" value="{{ assignment.id }}" />
-      <input type="hidden" name="question_id" value="{{ question.id }}" /> 
-    </form>
+  <form id="audioForm" method="post" action="{% url 'save_audio' %}">
+    {% csrf_token %}
+    <input type="hidden" name="audio_data" id="audio_data" />
+    <input type="hidden" name="assignment_id" value="{{ assignment.id }}" />
+    <input type="hidden" name="question_id" value="{{ question.id }}" />
+  </form>
 
-    <script>
-      // Function to speak the question using the Web Speech API
-      function speakQuestion(questionText) {
-        if ('speechSynthesis' in window) {
-          const speech = new SpeechSynthesisUtterance(questionText);
-          speech.lang = 'fr-FR'; // Set the language to French
-          speech.rate = 0.9; // Slower speed for more natural speech
-          speech.pitch = 1.2; // Slightly higher pitch for a friendlier tone
+  <script>
+    let index = 0;
+    let typingInterval;
+    const questionText = "{{ question|safe }}";  // Use 'safe' filter here
+    const typedTextElement = document.getElementById("typedText");
 
-          // Select a more natural voice if available
-          const voices = window.speechSynthesis.getVoices();
-          const selectedVoice = voices.find(voice => voice.lang === 'fr-FR' && voice.name.includes("Google")) || voices[0];
-          speech.voice = selectedVoice;
+    const clearTyping = () => {
+      clearInterval(typingInterval);  // Stop any ongoing typing
+      typedTextElement.textContent = "";  // Clear the current text
+      index = 0;  // Reset the index
+    };
 
-          window.speechSynthesis.speak(speech);
-        } else {
-          console.error("Text-to-Speech not supported by this browser.");
+    const typeCharacter = () => {
+      if (index < questionText.length) {
+        typedTextElement.textContent += questionText.charAt(index);
+        index++;
+      } else {
+        clearInterval(typingInterval);  // Stop the interval once typing is complete
+      }
+    };
+
+    const startTyping = () => {
+      clearTyping();  // Clear the text and reset the typing
+      typingInterval = setInterval(typeCharacter, 100);  // Adjust speed as needed
+    };
+
+    const speakQuestion = (questionText) => {
+      if ('speechSynthesis' in window) {
+        const speech = new SpeechSynthesisUtterance(questionText);
+        speech.lang = 'fr-FR';
+        speech.rate = 0.9;
+        speech.pitch = 1.2;
+
+        const voices = window.speechSynthesis.getVoices();
+        const selectedVoice = voices.find(voice => voice.lang === 'fr-FR' && voice.name.includes("Google")) || voices[0];
+        speech.voice = selectedVoice;
+
+        window.speechSynthesis.speak(speech);
+      } else {
+        console.error("Text-to-Speech not supported by this browser.");
+      }
+    };
+
+    window.onload = function() {
+      startTyping();  // Start typing animation on page load
+      speakQuestion(questionText);  // Start speaking the question
+    };
+
+    document.getElementById("replayButton").addEventListener("click", () => {
+      startTyping();  // Restart typing animation when replay is clicked
+      speakQuestion(questionText);  // Replay the spoken question
+    });
+
+    let mediaRecorder;
+    let audioChunks = [];
+    let isRecording = false;
+
+    const micDiv = document.getElementById("mic");
+
+    micDiv.addEventListener("click", async () => {
+      if (!isRecording) {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          mediaRecorder = new MediaRecorder(stream);
+          mediaRecorder.ondataavailable = (event) => {
+            audioChunks.push(event.data);
+          };
+          mediaRecorder.onstop = () => {
+            const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+            const reader = new FileReader();
+            reader.readAsArrayBuffer(audioBlob);
+            reader.onloadend = () => {
+              const base64String = btoa(
+                new Uint8Array(reader.result).reduce(
+                  (data, byte) => data + String.fromCharCode(byte),
+                  ""
+                )
+              );
+              document.getElementById("audio_data").value = base64String;
+              document.getElementById("audioForm").submit();
+            };
+          };
+          mediaRecorder.start();
+          isRecording = true;
+          micDiv.classList.add("recording");
+        } catch (error) {
+          console.error("Error accessing audio", error);
+        }
+      } else {
+        if (mediaRecorder) {
+          mediaRecorder.stop();
+          isRecording = false;
+          micDiv.classList.remove("recording");
         }
       }
-
-      // Play audio automatically when the page loads
-      window.onload = function() {
-        const questionText = "{{ question }}";
-        speakQuestion(questionText);
-      };
-
-      // Play audio when the "Replay" button is clicked
-      document.getElementById("replayButton").addEventListener("click", () => {
-        const questionText = "{{ question }}";
-        speakQuestion(questionText);
-      });
-
-      let mediaRecorder;
-      let audioChunks = [];
-      let isRecording = false;
-
-      const micDiv = document.getElementById("mic");
-
-      micDiv.addEventListener("click", async () => {
-        if (!isRecording) {
-          try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            mediaRecorder = new MediaRecorder(stream);
-            mediaRecorder.ondataavailable = (event) => {
-              audioChunks.push(event.data);
-            };
-            mediaRecorder.onstop = () => {
-              const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
-              const reader = new FileReader();
-              reader.readAsArrayBuffer(audioBlob);
-              reader.onloadend = () => {
-                const base64String = btoa(
-                  new Uint8Array(reader.result).reduce(
-                    (data, byte) => data + String.fromCharCode(byte),
-                    ""
-                  )
-                );
-                document.getElementById("audio_data").value = base64String;
-                document.getElementById("audioForm").submit();
-              };
-            };
-            mediaRecorder.start();
-            isRecording = true;
-            micDiv.classList.add("recording");
-          } catch (error) {
-            console.error("Error accessing audio", error);
-          }
-        } else {
-          if (mediaRecorder) {
-            mediaRecorder.stop();
-            isRecording = false;
-            micDiv.classList.remove("recording");
-          }
-        }
-      });
-    </script>
-  </body>
+    });
+  </script>
+</body>
 </html>

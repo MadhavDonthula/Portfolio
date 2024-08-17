@@ -1,80 +1,86 @@
 {% load static %}
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Home</title>
-    <link rel="stylesheet" href="{% static 'transcription/home.css' %}">
-</head>
-<body>
+    <link rel="stylesheet" href="{% static 'transcription/home.css' %}" />
+  </head>
+  <body>
     <div class="wrapper">
-        <div class="round"></div>
-        <div class="round"></div>
-        <div class="round"></div>
-        <div class="round"></div>
-        <div class="round"></div>
-        <div class="round"></div>
-        <div class="round"></div>
-        <div class="round"></div>
-        <div class="round"></div>
-        <div class="round"></div>
-        <div class="round"></div>
-        <div class="round"></div>
-        <div class="round"></div>
-        <div class="round"></div>
+      <div class="round"></div>
+      <div class="round"></div>
+      <div class="round"></div>
+      <div class="round"></div>
+      <div class="round"></div>
+      <div class="round"></div>
+      <div class="round"></div>
+      <div class="round"></div>
+      <div class="round"></div>
+      <div class="round"></div>
+      <div class="round"></div>
+      <div class="round"></div>
+      <div class="round"></div>
+      <div class="round"></div>
     </div>
     <div class="navbar-container">
-        <div class="logo">
+      <div class="logo"></div>
+      <div class="navbar">
+        <a href="/admin ">Teacher Login</a>
+        <div class="services">
+          <a href="#">Services</a>
+          <div class="dropdown-content">
+            <a href="/flashcards">Flashcards</a>
+            <a href="#">Speak</a>
+            <a href="#">Game</a>
+          </div>
         </div>
-        <div class="navbar">
-            <a href="/admin ">Teacher Login</a>
-            <div class="services">
-                <a href="#">Services</a>
-                <div class="dropdown-content">
-                    <a href="#">Flashcards</a>
-                    <a href="#">Speak</a>
-                    <a href="#">Game</a>
-                </div>
-            </div>
-            <a href="#">Contact Us</a>
-        </div>
+        <a href="#">Contact Us</a>
+      </div>
     </div>
     <div class="input-container">
-        <form method="post">
-            {% csrf_token %}
-            <div class="input-box">
-                <input type="text" id="class_code" name="class_code" class="curvy-input" maxlength="5" required oninput="handleInput(this)" placeholder="Class Code">
-                <div class="underscore" id="underscore-container">
-                    <span class="underscore-span" id="char1">_</span>
-                    <span class="underscore-span" id="char2">_</span>
-                    <span class="underscore-span" id="char3">_</span>
-                    <span class="underscore-span" id="char4">_</span>
-                    <span class="underscore-span" id="char5">_</span>
-                </div>
-            </div>
-            {% if error %}
-                <p class="error">{{ error }}</p>
-            {% endif %}
-        </form>
+      <form method="post">
+        {% csrf_token %}
+        <div class="input-box">
+          <input
+            type="text"
+            id="class_code"
+            name="class_code"
+            class="curvy-input"
+            maxlength="5"
+            required
+            oninput="handleInput(this)"
+            placeholder="Class Code" />
+          <div class="underscore" id="underscore-container">
+            <span class="underscore-span" id="char1">_</span>
+            <span class="underscore-span" id="char2">_</span>
+            <span class="underscore-span" id="char3">_</span>
+            <span class="underscore-span" id="char4">_</span>
+            <span class="underscore-span" id="char5">_</span>
+          </div>
+        </div>
+        {% if error %}
+        <p class="error">{{ error }}</p>
+        {% endif %}
+      </form>
     </div>
 
-
     <script>
-        function handleInput(input) {
-            const value = input.value.toUpperCase(); // Convert input to uppercase
-            const underscores = document.querySelectorAll('.underscore-span');
-            
-            for (let i = 0; i < underscores.length; i++) {
-                underscores[i].textContent = value[i] ? value[i] : '_';
-                underscores[i].style.opacity = value.length > 0 ? '1' : '0'; // Show underscores only if there is input
-            }
+      function handleInput(input) {
+        const value = input.value.toUpperCase(); // Convert input to uppercase
+        const underscores = document.querySelectorAll(".underscore-span");
 
-            // Automatically submit form when the code is fully entered
-            if (value.length === 5) {
-                input.form.submit();
-            }
+        for (let i = 0; i < underscores.length; i++) {
+          underscores[i].textContent = value[i] ? value[i] : "_";
+          underscores[i].style.opacity = value.length > 0 ? "1" : "0"; // Show underscores only if there is input
         }
+
+        // Automatically submit form when the code is fully entered
+        if (value.length === 5) {
+          input.form.submit();
+        }
+      }
     </script>
-</body>
+  </body>
 </html>

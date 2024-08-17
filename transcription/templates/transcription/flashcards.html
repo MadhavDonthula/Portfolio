@@ -1,0 +1,92 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Flashcards</title>
+    <link rel="stylesheet" href="{% static 'transcription/flashcards.css' %}" />
+  </head>
+  <body>
+    {% if flashcard %}
+    <div class="flashcard" id="flashcard">
+      <div class="flashcard-front">
+        <h1>{{ flashcard.french_word }}</h1>
+      </div>
+      <div class="flashcard-back">
+        <h1>{{ flashcard.english_translation }}</h1>
+      </div>
+    </div>
+    {% else %}
+    <p>No flashcards available in this set.</p>
+    {% endif %}
+    <div class="mic_button" id="mic_button">🎤</div>
+    <div class="checkmark" id="checkmark">✔️</div>
+    <form id="audioForm" method="POST" style="display: none">
+      {% csrf_token %}
+      <input type="hidden" name="audio_data" id="audio_data" />
+      <input type="hidden" name="flashcard_id" value="{{ flashcard.id }}" />
+    </form>
+
+    <script>
+      let isRecording = false;
+      let mediaRecorder;
+      let audioChunks = [];
+      let attemptCount = 0;
+      const maxAttempts = 3;
+
+      const micDiv = document.getElementById("mic_button");
+      const checkmark = document.getElementById("checkmark");
+      const flashcard = document.getElementById("flashcard");
+
+      micDiv.addEventListener("click", async () => {
+        if (!isRecording) {
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({
+              audio: true,
+            });
+            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder.ondataavailable = (event) => {
+              audioChunks.push(event.data);
+            };
+            mediaRecorder.onstop = () => {
+              const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
+              const reader = new FileReader();
+              reader.readAsArrayBuffer(audioBlob);
+              reader.onloadend = () => {
+                const base64String = btoa(
+                  new Uint8Array(reader.result).reduce(
+                    (data, byte) => data + String.fromCharCode(byte),
+                    ""
+                  )
+                );
+                document.getElementById("audio_data").value = base64String;
+                document.getElementById("audioForm").submit();
+              };
+            };
+            mediaRecorder.start();
+            isRecording = true;
+            micDiv.classList.add("recording");
+          } catch (error) {
+            console.error("Error accessing audio", error);
+          }
+        } else {
+          if (mediaRecorder) {
+            mediaRecorder.stop();
+            isRecording = false;
+            micDiv.classList.remove("recording");
+            attemptCount++;
+          }
+        }
+      });
+
+      flashcard.addEventListener("click", () => {
+        flashcard.classList.toggle("flipped");
+      });
+
+      function showCheckmark() {
+        checkmark.classList.add("show");
+      }
+    </script>
+  </body>
+</html>

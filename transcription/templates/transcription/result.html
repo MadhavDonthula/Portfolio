@@ -1,0 +1,29 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'transcription/result.css' %}">
+</head>
+<body>
+    <div class="container">
+        <h1>Results</h1>
+        <div class="result-box">
+            <h2>Original Question:</h2>
+            <p>{{ question }}</p>
+
+            <h2>Your Answer:</h2>
+            <p>{{ transcribed_text }}</p>
+
+            <h2>Expected Answer:</h2>
+            <p>{{ answer }}</p>
+
+            <h2>Your Score:</h2>
+            <p>{{ score }}%</p>
+        </div>
+        <a href="{% url 'record_audio' assignment.id %}" class="button">Try Another Question</a>
+    </div>
+</body>
+</html>

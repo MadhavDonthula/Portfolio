@@ -12,8 +12,8 @@ class Assignment(models.Model):
 
 class QuestionAnswer(models.Model):
     assignment = models.ForeignKey(Assignment, related_name="questions", on_delete=models.CASCADE)
-    question = models.TextField(max_length=500)
-    answer = models.TextField(max_length=500)
+    question = models.TextField(max_length=1000)
+    answer = models.TextField(max_length=1000)
 
     def __str__(self):
         return f"Question: {self.question[:30]}"
@@ -24,3 +24,17 @@ class ClassCode(models.Model):
 
     def __str__(self):
         return self.code
+
+class FlashcardSet(models.Model):
+    name = models.CharField(max_length=100)
+
+    def __str__(self):
+        return self.name
+
+class Flashcard(models.Model):
+    flashcard_set = models.ForeignKey(FlashcardSet, related_name='flashcards', on_delete=models.CASCADE)
+    french_word = models.CharField(max_length=100)
+    english_translation = models.CharField(max_length=100)
+
+    def __str__(self):
+        return f"{self.french_word} - {self.english_translation}"
