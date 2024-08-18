@@ -8,30 +8,24 @@
     <link rel="stylesheet" href="{% static 'transcription/flashcards.css' %}" />
   </head>
   <body>
+    {% if flashcard %}
     <div class="flashcard" id="flashcard">
       <div class="flashcard-front">
-        <h1 id="french-word">{{ flashcard.french_word }}</h1>
-        <div id="mic" class="mic">
-          <i class="mic-icon"></i>
-        </div>
+        <h1>{{ flashcard.french_word }}</h1>
       </div>
       <div class="flashcard-back">
-        <h1 id="english-translation">{{ flashcard.english_translation }}</h1>
+        <h1>{{ flashcard.english_translation }}</h1>
       </div>
     </div>
-    <div class="checkmark" id="checkmark">✅</div>
-    <div class="wrong" id="wrong">❌</div>
-    <div class="transcribed-text" id="transcribed-text"></div>
-    <div class="next-arrow" id="next-arrow">➡️</div>
-    <div class="loading" id="loading">Loading...</div>
+    {% else %}
+    <p>No flashcards available in this set.</p>
+    {% endif %}
+    <div class="mic_button" id="mic_button">🎤</div>
+    <div class="checkmark" id="checkmark">✔️</div>
     <form id="audioForm" method="POST" style="display: none">
       {% csrf_token %}
       <input type="hidden" name="audio_data" id="audio_data" />
-      <input
-        type="hidden"
-        name="flashcard_id"
-        id="flashcard_id"
-        value="{{ flashcard.id }}" />
+      <input type="hidden" name="flashcard_id" value="{{ flashcard.id }}" />
     </form>
 
     <script>
@@ -39,55 +33,35 @@
       let mediaRecorder;
       let audioChunks = [];
       let attemptCount = 0;
-      let currentFlashcardIndex = 0;
-      const maxAttempts = 2;
+      const maxAttempts = 3;
 
-      const micDiv = document.getElementById("mic");
+      const micDiv = document.getElementById("mic_button");
       const checkmark = document.getElementById("checkmark");
-      const wrong = document.getElementById("wrong");
       const flashcard = document.getElementById("flashcard");
-      const nextArrow = document.getElementById("next-arrow");
-      const loading = document.getElementById("loading");
-      const transcribedText = document.getElementById("transcribed-text");
 
-      const flashcards = [
-        {% for flashcard in flashcards %}
-          {
-            id: {{ flashcard.id }},
-            french_word: "{{ flashcard.french_word }}",
-            english_translation: "{{ flashcard.english_translation }}"
-          },
-        {% endfor %}
-      ];
-
-      function updateFlashcard() {
-        const currentFlashcard = flashcards[currentFlashcardIndex];
-        document.getElementById('french-word').textContent = currentFlashcard.french_word;
-        document.getElementById('english-translation').textContent = currentFlashcard.english_translation;
-        document.getElementById('flashcard_id').value = currentFlashcard.id;
-        resetUI();
-      }
-
-      micDiv.addEventListener("click", async (event) => {
-        event.stopPropagation();
+      micDiv.addEventListener("click", async () => {
         if (!isRecording) {
           try {
             const stream = await navigator.mediaDevices.getUserMedia({
               audio: true,
             });
             mediaRecorder = new MediaRecorder(stream);
-            audioChunks = []; // Reset audio chunks
             mediaRecorder.ondataavailable = (event) => {
               audioChunks.push(event.data);
             };
             mediaRecorder.onstop = () => {
               const audioBlob = new Blob(audioChunks, { type: "audio/wav" });
               const reader = new FileReader();
-              reader.readAsDataURL(audioBlob);
+              reader.readAsArrayBuffer(audioBlob);
               reader.onloadend = () => {
-                const base64String = reader.result.split(',')[1];
+                const base64String = btoa(
+                  new Uint8Array(reader.result).reduce(
+                    (data, byte) => data + String.fromCharCode(byte),
+                    ""
+                  )
+                );
                 document.getElementById("audio_data").value = base64String;
-                checkPronunciation(base64String);
+                document.getElementById("audioForm").submit();
               };
             };
             mediaRecorder.start();
@@ -102,84 +76,17 @@
             isRecording = false;
             micDiv.classList.remove("recording");
             attemptCount++;
-            loading.style.display = "block";
           }
         }
       });
 
       flashcard.addEventListener("click", () => {
-        if (!isRecording) {
-          flashcard.classList.toggle("flipped");
-        }
+        flashcard.classList.toggle("flipped");
       });
-
-      function checkPronunciation(audioData) {
-        const form = document.getElementById("audioForm");
-        const formData = new FormData(form);
-
-        fetch("{% url 'check_pronunciation' %}", {
-          method: "POST",
-          body: formData,
-          headers: {
-            "X-CSRFToken": formData.get("csrfmiddlewaretoken"),
-          },
-        })
-          .then((response) => response.json())
-          .then((data) => {
-            loading.style.display = "none";
-            if (data.correct) {
-              showCheckmark();
-            } else {
-              showWrong(data.transcribed_text);
-            }
-          })
-          .catch((error) => {
-            console.error("Error:", error);
-            loading.style.display = "none";
-          });
-      }
 
       function showCheckmark() {
         checkmark.classList.add("show");
-        nextArrow.classList.add("show");
-        transcribedText.textContent = "";
-        transcribedText.style.display = "none";
-        resetMic();
       }
-
-      function showWrong(transcribed) {
-        wrong.classList.add("show");
-        transcribedText.textContent = `You said: ${transcribed}`;
-        transcribedText.style.display = "block";
-        if (attemptCount >= maxAttempts) {
-          nextArrow.classList.add("show");
-          resetMic();
-        }
-      }
-
-      function resetMic() {
-        micDiv.classList.remove("recording");
-        isRecording = false;
-        audioChunks = [];
-        attemptCount = 0;
-      }
-
-      function resetUI() {
-        checkmark.classList.remove("show");
-        wrong.classList.remove("show");
-        nextArrow.classList.remove("show");
-        transcribedText.style.display = "none";
-        flashcard.classList.remove("flipped");
-        resetMic();
-      }
-
-      nextArrow.addEventListener("click", () => {
-        currentFlashcardIndex = (currentFlashcardIndex + 1) % flashcards.length;
-        updateFlashcard();
-      });
-
-      // Initialize the first flashcard
-      updateFlashcard();
     </script>
   </body>
 </html>

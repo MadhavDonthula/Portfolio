@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 import base64
 import whisper
 import string
-from django.http import HttpResponse, JsonResponse
+from django.http import HttpResponse
 from .models import Assignment, QuestionAnswer, ClassCode, FlashcardSet, Flashcard
 
 def blank(request):
@@ -124,28 +124,40 @@ def check_pronunciation(request):
         flashcard_id = request.POST.get("flashcard_id", "")
 
         if not flashcard_id.isdigit():
-            return JsonResponse({"error": "Invalid ID format"})
+            return HttpResponse("Error: Invalid ID format")
         
         flashcard_id = int(flashcard_id)
 
         try:
             if audio_data:
+                # Decode audio data and save it as a WAV file
                 audio_bytes = base64.b64decode(audio_data)
                 with open("temp_audio.wav", "wb") as f:
                     f.write(audio_bytes)
 
-                model = whisper.load_model("base")
+                # Load the Whisper model
+                model = whisper.load_model("medium")
+
+                # Transcribe the audio with language set to French
                 result = model.transcribe("temp_audio.wav", language="fr")
-                transcribed_text = result["text"].strip().lower()
+                transcribed_text = result["text"]
 
-                flashcard = Flashcard.objects.get(id=flashcard_id)
-                correct_text = flashcard.french_word.strip().lower()
+                # Retrieve the flashcard and reference text
+                flashcard = get_object_or_404(Flashcard, id=flashcard_id)
+                correct_text = flashcard.french_word
 
-                is_correct = correct_text in transcribed_text
+                # Compare the transcribed text with the reference text
+                missing_words, score = compare_texts(transcribed_text, correct_text)
 
-                return JsonResponse({"correct": is_correct, "transcribed_text": transcribed_text})
+                # Pass the transcribed text, answer, and score to the result page
+                return render(request, 'transcription/result.html', {
+                    'transcribed_text': transcribed_text,
+                    'answer': correct_text,
+                    'score': score,
+                    'flashcard': flashcard,
+                })
             else:
-                return JsonResponse({"error": "Invalid audio data format"})
+                return HttpResponse("Error: Invalid audio data format")
         except Exception as e:
-            return JsonResponse({"error": str(e)})
-    return JsonResponse({"error": "No audio data received"})
+            return HttpResponse(f"Error: {str(e)}")
+    return HttpResponse("No audio data received")
