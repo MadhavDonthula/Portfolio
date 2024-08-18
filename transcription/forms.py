@@ -1,7 +1,16 @@
 from django import forms
-from .models import ReferenceText
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from .models import CustomUser
 
-class ReferenceTextForm(forms.ModelForm):
+
+
+
+class SignupForm(UserCreationForm):
     class Meta:
-        model = ReferenceText
-        fields = ['text']
+        model = CustomUser
+        fields = ['username', 'password1', 'password2', 'class_code']
+
+class LoginForm(AuthenticationForm):
+    class Meta:
+        model = CustomUser
+        fields = ['username', 'password']

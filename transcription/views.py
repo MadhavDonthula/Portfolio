@@ -1,12 +1,36 @@
 from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib.auth import login, authenticate
+
 import base64
 import whisper
 import string
 from django.http import HttpResponse
 from .models import Assignment, QuestionAnswer, ClassCode, FlashcardSet, Flashcard
+from .forms import SignupForm, LoginForm
 
-def blank(request):
-    return render(request, "transcription/blank.html")
+
+def signup(request):
+    if request.method == "POST":
+        form = SignupForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('home')
+    else:
+        form = SignupForm()
+    return render(request, 'transcription/signup.html', {'form': form})
+
+def login_view(request):
+    if request.method == "POST":
+        form = LoginForm(request, data=request.POST)
+        if form.is_valid():
+            user = form.get_user()
+            login(request, user)
+            return redirect('home')
+    else:
+        form = LoginForm()
+    return render(request, 'transcription/login.html', {'form': form})
+
 
 def home(request):
     if request.method == "POST":
@@ -139,6 +163,7 @@ def check_pronunciation(request):
                 model = whisper.load_model("medium")
 
                 # Transcribe the audio with language set to French
+                model = whisper.load_model("small")
                 result = model.transcribe("temp_audio.wav", language="fr")
                 transcribed_text = result["text"]
 

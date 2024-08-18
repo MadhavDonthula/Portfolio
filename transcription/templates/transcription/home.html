@@ -24,21 +24,7 @@
       <div class="round"></div>
       <div class="round"></div>
     </div>
-    <div class="navbar-container">
-      <div class="logo"></div>
-      <div class="navbar">
-        <a href="/admin ">Teacher Login</a>
-        <div class="services">
-          <a href="#">Services</a>
-          <div class="dropdown-content">
-            <a href="/flashcards">Flashcards</a>
-            <a href="#">Speak</a>
-            <a href="#">Game</a>
-          </div>
-        </div>
-        <a href="#">Contact Us</a>
-      </div>
-    </div>
+
     <div class="input-container">
       <form method="post">
         {% csrf_token %}
@@ -82,5 +68,17 @@
         }
       }
     </script>
+    <div class="auth-container">
+      <div class="auth-box">
+        <h2>Login</h2>
+        <form method="post" action="{% url 'login' %}">
+          {% csrf_token %} {{ form.as_p }}
+          <button type="submit">Login</button>
+        </form>
+        <p>
+          Don't have an account? <a href="{% url 'signup' %}">Sign up here</a>
+        </p>
+      </div>
+    </div>
   </body>
 </html>

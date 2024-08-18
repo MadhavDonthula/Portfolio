@@ -48,6 +48,8 @@ INSTALLED_APPS = [
     "django.contrib.staticfiles",
     "transcription"
 ]
+AUTH_USER_MODEL = "transcription.CustomUser"
+
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
